@@ -204,39 +204,13 @@ laplacian_assemble(
   int lo = hi-1;
   // const float a = fmin(fmax((v - gamma[lo])/(gamma[hi]-gamma[lo]), 0.0f), 1.0f);
   const float a = fmin(fmax(v*num_gamma - ((float)lo+.5f), 0.0f), 1.0f);
-  float l0, l1;
-  switch(lo)
-  { // oh man, this sucks:
-    case 0:
-      l0 = laplacian(buf_g0_l1, buf_g0_l0, x, y, i, j, pw, ph);
-      l1 = laplacian(buf_g1_l1, buf_g1_l0, x, y, i, j, pw, ph);
-      break;
-    case 1:
-      l0 = laplacian(buf_g1_l1, buf_g1_l0, x, y, i, j, pw, ph);
-      l1 = laplacian(buf_g2_l1, buf_g2_l0, x, y, i, j, pw, ph);
-      break;
-    case 2:
-      l0 = laplacian(buf_g2_l1, buf_g2_l0, x, y, i, j, pw, ph);
-      l1 = laplacian(buf_g3_l1, buf_g3_l0, x, y, i, j, pw, ph);
-      break;
-    case 3:
-      l0 = laplacian(buf_g3_l1, buf_g3_l0, x, y, i, j, pw, ph);
-      l1 = laplacian(buf_g4_l1, buf_g4_l0, x, y, i, j, pw, ph);
-      break;
-    default: //case 4:
-      l0 = laplacian(buf_g4_l1, buf_g4_l0, x, y, i, j, pw, ph);
-      l1 = laplacian(buf_g5_l1, buf_g5_l0, x, y, i, j, pw, ph);
-      break;
-    // case 5:
-    //   l0 = laplacian(buf_g5_l1, buf_g5_l0, x, y, i, j, pw, ph);
-    //   l1 = laplacian(buf_g6_l1, buf_g6_l0, x, y, i, j, pw, ph);
-    //   break;
-    // default: // case 6:
-    //   l0 = laplacian(buf_g6_l1, buf_g6_l0, x, y, i, j, pw, ph);
-    //   l1 = laplacian(buf_g7_l1, buf_g7_l0, x, y, i, j, pw, ph);
-    //   break;
-  }
-  pixel.x += l0 * (1.0f-a) + l1 * a;
+  float r;
+  r = select(r, laplacian(buf_g0_l1, buf_g0_l0, x, y, i, j, pw, ph) * (1.0f-a) + laplacian(buf_g1_l1, buf_g1_l0, x, y, i, j, pw, ph) * a, lo == 0);
+  r = select(r, laplacian(buf_g1_l1, buf_g1_l0, x, y, i, j, pw, ph) * (1.0f-a) + laplacian(buf_g2_l1, buf_g2_l0, x, y, i, j, pw, ph) * a, lo == 1);
+  r = select(r, laplacian(buf_g2_l1, buf_g2_l0, x, y, i, j, pw, ph) * (1.0f-a) + laplacian(buf_g3_l1, buf_g3_l0, x, y, i, j, pw, ph) * a, lo == 2);
+  r = select(r, laplacian(buf_g3_l1, buf_g3_l0, x, y, i, j, pw, ph) * (1.0f-a) + laplacian(buf_g4_l1, buf_g4_l0, x, y, i, j, pw, ph) * a, lo == 3);
+  r = select(r, laplacian(buf_g4_l1, buf_g4_l0, x, y, i, j, pw, ph) * (1.0f-a) + laplacian(buf_g5_l1, buf_g5_l0, x, y, i, j, pw, ph) * a, lo >= 4);
+  pixel.x += r;
   write_imagef (output0, (int2)(x, y), pixel);
 }
 
